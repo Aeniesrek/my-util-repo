@@ -5,7 +5,7 @@ steps:
       [
         "build",
         "-t",
-        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA",
+        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-util-repo/hello-world-api-service:$COMMIT_SHA",
         ".",
       ]
 
@@ -14,7 +14,7 @@ steps:
     args:
       [
         "push",
-        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA",
+        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-util-repo/hello-world-api-service:$COMMIT_SHA",
       ]
 
   # 3. Secret Manager から認証キーを取得して Cloud Run にデプロイ
@@ -24,7 +24,7 @@ steps:
       - "run"
       - "deploy"
       - "hello-world-api-service" # あなたの Cloud Run サービス名
-      - "--image=asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA"
+      - "--image=asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-util-repo/hello-world-api-service:$COMMIT_SHA"
       - "--region=asia-northeast2" # あなたのリージョン
       - "--platform=managed"
       # ここで Secret Manager のシークレットを環境変数として設定
