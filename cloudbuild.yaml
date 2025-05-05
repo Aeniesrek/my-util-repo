@@ -30,7 +30,7 @@ steps:
         "deploy",
         "hello-world-api-service", # Cloud Runサービスの名前 (任意)
         "--image=asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # デプロイするイメージ
-        "--region=asia-northeast1", # デプロイ先のリージョン
+        "--region=asia-northeast2", # デプロイ先のリージョン
         "--platform=managed", # フルマネージドプラットフォームを使用
         "--allow-unauthenticated", # ★重要: 今回はテストのため認証なしアクセスを許可 (本番では要検討)
         "--project=moriguchiapplication", # プロジェクトIDを指定
