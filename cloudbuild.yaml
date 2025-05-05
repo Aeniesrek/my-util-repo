@@ -1,46 +1,39 @@
-options:
-  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
-
 steps:
-  # ステップ1: Dockerイメージをビルド
+  # 1. Docker イメージをビルド
   - name: "gcr.io/cloud-builders/docker"
-    args: [
+    args:
+      [
         "build",
         "-t",
-        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # リージョン、リポジトリ名、イメージ名を指定
-        ".", # Dockerfileがあるカレントディレクトリを指定
+        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA",
+        ".",
       ]
-    id: Build
 
-  # ステップ2: ビルドしたイメージをArtifact Registryにプッシュ
+  # 2. イメージを Artifact Registry にプッシュ
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "push",
-        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}",
+        "asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA",
       ]
-    id: Push
-    waitFor: ["Build"] # Buildステップの完了を待つ
 
-  # ステップ3: Cloud Runサービスにデプロイ (または更新)
-  - name: "google/cloud-sdk:latest" # gcloudコマンドが使えるイメージ
-    entrypoint: gcloud # entrypointを指定
-    args: [
-        "run",
-        "deploy",
-        "hello-world-api-service", # Cloud Runサービスの名前 (任意)
-        "--image=asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # デプロイするイメージ
-        "--region=asia-northeast2", # デプロイ先のリージョン
-        "--platform=managed", # フルマネージドプラットフォームを使用
-        "--allow-unauthenticated", # ★重要: 今回はテストのため認証なしアクセスを許可 (本番では要検討)
-        "--project=moriguchiapplication", # プロジェクトIDを指定
-      ]
-    id: Deploy
-    waitFor: ["Push"] # Pushステップの完了を待つ
+  # 3. Secret Manager から認証キーを取得して Cloud Run にデプロイ
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "hello-world-api-service" # あなたの Cloud Run サービス名
+      - "--image=asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-api-repo/hello-world-api-service:$COMMIT_SHA"
+      - "--region=asia-northeast2" # あなたのリージョン
+      - "--platform=managed"
+      # ここで Secret Manager のシークレットを環境変数として設定
+      # secrets: [{secret: シークレット名, env: 環境変数名}]
+      # バージョンを指定しない場合は 'latest' が使われる
+      - "--set-secrets=SECRET_AUTH_KEY=api-auth-key:latest"
+      # 以前設定した未認証許可フラグ (必要に応じて)
+      # '--allow-unauthenticated' # もし外部から直接呼び出す必要がある場合
 
-# ビルド成果物としてArtifact Registryにイメージを登録
-images:
-  - "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}"
-
-# オプション: タイムアウト時間を設定 (デフォルトは10分)
-timeout: "1200s" # 20分
+# ビルドログのリージョン設定 (以前追加したもの)
+options:
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
