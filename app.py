@@ -45,7 +45,6 @@ def handle_post_data():
         # キーがない、または間違っている場合
         return jsonify({"error": "Unauthorized"}), 401 # エラーレスポンス (ステータスコード 401 Unauthorized)
 
-# スクリプトが直接実行された場合に開発サーバーを起動
 if __name__ == '__main__':
     # デバッグモードを有効にして実行 (開発時のみ推奨)
     # ポート番号はデフォルトの5000
