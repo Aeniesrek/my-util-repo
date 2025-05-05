@@ -1,3 +1,6 @@
+options:
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
 steps:
   # ステップ1: Dockerイメージをビルド
   - name: "gcr.io/cloud-builders/docker"
