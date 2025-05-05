@@ -7,7 +7,7 @@ steps:
     args: [
         "build",
         "-t",
-        "asia-northeast1-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # リージョン、リポジトリ名、イメージ名を指定
+        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # リージョン、リポジトリ名、イメージ名を指定
         ".", # Dockerfileがあるカレントディレクトリを指定
       ]
     id: Build
@@ -17,7 +17,7 @@ steps:
     args:
       [
         "push",
-        "asia-northeast1-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}",
+        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}",
       ]
     id: Push
     waitFor: ["Build"] # Buildステップの完了を待つ
@@ -29,7 +29,7 @@ steps:
         "run",
         "deploy",
         "hello-world-api-service", # Cloud Runサービスの名前 (任意)
-        "--image=asia-northeast1-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # デプロイするイメージ
+        "--image=asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # デプロイするイメージ
         "--region=asia-northeast1", # デプロイ先のリージョン
         "--platform=managed", # フルマネージドプラットフォームを使用
         "--allow-unauthenticated", # ★重要: 今回はテストのため認証なしアクセスを許可 (本番では要検討)
@@ -40,7 +40,7 @@ steps:
 
 # ビルド成果物としてArtifact Registryにイメージを登録
 images:
-  - "asia-northeast1-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}"
+  - "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}"
 
 # オプション: タイムアウト時間を設定 (デフォルトは10分)
 timeout: "1200s" # 20分
