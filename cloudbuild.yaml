@@ -1,0 +1,43 @@
+steps:
+  # ステップ1: Dockerイメージをビルド
+  - name: "gcr.io/cloud-builders/docker"
+    args: [
+        "build",
+        "-t",
+        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # リージョン、リポジトリ名、イメージ名を指定
+        ".", # Dockerfileがあるカレントディレクトリを指定
+      ]
+    id: Build
+
+  # ステップ2: ビルドしたイメージをArtifact Registryにプッシュ
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}",
+      ]
+    id: Push
+    waitFor: ["Build"] # Buildステップの完了を待つ
+
+  # ステップ3: Cloud Runサービスにデプロイ (または更新)
+  - name: "google/cloud-sdk:latest" # gcloudコマンドが使えるイメージ
+    entrypoint: gcloud # entrypointを指定
+    args: [
+        "run",
+        "deploy",
+        "hello-world-api-service", # Cloud Runサービスの名前 (任意)
+        "--image=asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}", # デプロイするイメージ
+        "--region=asia-northeast1", # デプロイ先のリージョン
+        "--platform=managed", # フルマネージドプラットフォームを使用
+        "--allow-unauthenticated", # ★重要: 今回はテストのため認証なしアクセスを許可 (本番では要検討)
+        "--project=moriguchiapplication", # プロジェクトIDを指定
+      ]
+    id: Deploy
+    waitFor: ["Push"] # Pushステップの完了を待つ
+
+# ビルド成果物としてArtifact Registryにイメージを登録
+images:
+  - "asia-northeast2-docker.pkg.dev/moriguchiapplication/my-util-repo/hello-world-api:${SHORT_SHA}"
+
+# オプション: タイムアウト時間を設定 (デフォルトは10分)
+timeout: "1200s" # 20分

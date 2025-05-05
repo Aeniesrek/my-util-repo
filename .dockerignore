@@ -1,0 +1,31 @@
+# 仮想環境フォルダ
+venv
+.venv
+
+# Pythonキャッシュファイル
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# OS固有ファイル
+.DS_Store
+
+# IDE/Editor設定ファイル
+.vscode
+.idea
+
+# Git関連
+.git
+.gitignore
+
+# Docker関連 (Dockerfile自体は不要)
+Dockerfile
+.dockerignore
+
+# READMEなどビルドに不要なもの (任意)
+README.md
+*.md
+
+# Cloud Build 設定ファイル (任意)
+cloudbuild.yaml
