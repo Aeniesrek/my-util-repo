@@ -224,7 +224,7 @@ def create_employee_event(employee_id):
         # 親キー (従業員) を指定
         parent_key = client.key('employees', employee_id)
         # EmployeeEventエンティティのキー (IDは自動生成)
-        event_key = client.key('EmployeeEvent', parent=parent_key)
+        event_key = client.key('employee_event', parent=parent_key)
         
         event_entity = datastore.Entity(key=event_key)
         event_entity.update({
