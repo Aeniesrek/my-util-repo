@@ -1,5 +1,3 @@
-# My Util API (プロジェクト名に合わせて変更してください)
-
 このプロジェクトは、Python (Flask) を使用して構築された Web API アプリケーションです。Google Cloud Platform (GCP) 上の Cloud Run にデプロイされ、データストレージとして Cloud Datastore (Firestore in Datastore mode) を利用します。
 
 ## 概要
