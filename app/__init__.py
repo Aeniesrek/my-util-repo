@@ -13,8 +13,7 @@ def create_app(config_name=None):
     app_instance = Flask(__name__)
 
     # --- 設定の読み込み ---
-    app_instance.config['SECRET_AUTH_KEY'] = os.environ.get('SECRET_AUTH_KEY', 'mysecretkey_app_init_default')
-    app_instance.config['GOOGLE_GEN_AI_API_KEY'] = os.environ.get('GOOGLE_GEN_AI_API_KEY')
+    app_instance.config['SECRET_AUTH_KEY'] = os.environ.get('SECRET_AUTH_KEY', 'GOOGLE_GEN_AI_API_KEY')
 
     # ... (SECRET_AUTH_KEY のチェック) ...
 
