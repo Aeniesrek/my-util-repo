@@ -53,9 +53,6 @@ def create_app(config_name=None):
     from .employees import employees_bp
     app_instance.register_blueprint(employees_bp, name=f"employees_bp_instance_{os.getpid()}")
 
-    from .employees import employees_bp # employees Blueprintをインポート
-    app_instance.register_blueprint(employees_bp) # url_prefix は employees_bp 定義時に設定済み
-
     from .meeting_summary import bp as meeting_summary_bp
     app_instance.register_blueprint(meeting_summary_bp, url_prefix='/meeting-summary')
 
