@@ -166,12 +166,15 @@ def setup(c):
 
 @task
 def run_server(c):
-    """Starts the Flask development server."""
+    """Starts the Flask development server (using application factory).""" # Docstringを少し更新
     port = API_BASE_URL.split(':')[-1] if ':' in API_BASE_URL else '5000'
-    print(f"Starting Flask server on http://0.0.0.0:{port}...")
+    print(f"Starting Flask server on http://0.0.0.0:{port} (using app:create_app())...") # print文も更新
     env_vars = os.environ.copy()
-    env_vars.update({'FLASK_APP': 'app.py', 'FLASK_ENV': 'development', 
-                     'SECRET_AUTH_KEY': str(SECRET_AUTH_KEY) if SECRET_AUTH_KEY else ''})
+    env_vars.update({
+        'FLASK_APP': 'app:create_app()', # <--- ここが重要な変更点
+        'FLASK_ENV': 'development', 
+        'SECRET_AUTH_KEY': str(SECRET_AUTH_KEY) if SECRET_AUTH_KEY else ''
+    })
     c.run(f'flask run --host=0.0.0.0 --port={port}', env=env_vars, pty=True)
 
 @task
@@ -275,8 +278,128 @@ def test_employee_event_prod(c):
     if not auth_key: print("Error: Auth key for PROD not set."); return
     _run_event_creation_test_cases(c, PROD_API_BASE_URL, auth_key, TEST_EMPLOYEE_ID, "PROD")
 
-# 旧 test_data_auth_local と test_data_auth_prod は削除しました。
-# 必要であれば、シンプルな /data エンドポイントの疎通確認タスクとして別途作成も可能です。
+@task
+def test_summary_local(c):
+    """
+    LOCAL環境で議事録要約APIをテストします。
+    (app/meeting_summary/meeting)
+    """
+    print(f"\n--- Testing Meeting Summary API (LOCAL: {API_BASE_URL}/meeting-summary/meeting) ---")
 
-# To see available tasks: invoke --list
-# To run a task: invoke <task-name> (e.g., invoke setup, invoke test-employee-creation-local)
+    if not SECRET_AUTH_KEY:
+        print("Error: SECRET_AUTH_KEY not set. Aborting test.")
+        return False
+    
+    # 議事録ファイルからコンテンツを読み込む
+    try:
+        with open('transcript_data.txt', 'r', encoding='utf-8') as f:
+            transcript_content = f.read()
+        print("Successfully loaded transcript_data.txt")
+    except FileNotFoundError:
+        print("Error: 'transcript_data.txt' not found. Please create it with the full transcript content.")
+        return False
+    except Exception as e:
+        print(f"Error reading 'transcript_data.txt': {e}")
+        return False
+    
+    payload = {
+        "transcript_content": transcript_content,
+        "save_to_firestore": True # 必要に応じて False に変更
+    }
+    
+    # JSON文字列に変換してPOSTリクエストを送信
+    response = _send_post_request(
+        API_BASE_URL, 
+        "/meeting-summary/meeting", 
+        json.dumps(payload), 
+        SECRET_AUTH_KEY
+    )
+
+    if response and response.status_code == 200:
+        print(f"Meeting Summary API (LOCAL) SUCCEEDED. Status: {response.status_code}")
+        try:
+            summary_json = response.json()
+            print(f"Response Summary: {json.dumps(summary_json, indent=2, ensure_ascii=False)}")
+            # 必要に応じて、response.json() の内容を検証するアサーションを追加
+            assert "summary" in summary_json
+            assert "overall_summary" in summary_json["summary"]
+            print("Summary content validated.")
+        except requests.exceptions.JSONDecodeError:
+            print(f"Response body (text): {response.text}")
+            print("Failed to decode JSON response.")
+        except AssertionError as ae:
+            print(f"Summary validation failed: {ae}")
+            return False
+        return True
+    else:
+        status = response.status_code if response else "N/A"
+        body = response.text if response and hasattr(response, 'text') else "No response object"
+        print(f"Meeting Summary API (LOCAL) FAILED. Status: {status}")
+        print(f"Response body: {body}")
+        return False
+
+
+@task
+def test_summary_prod(c):
+    """
+    PROD環境で議事録要約APIをテストします。
+    (app/meeting_summary/meeting)
+    """
+    print(f"\n--- Testing Meeting Summary API (PROD: {PROD_API_BASE_URL}/meeting-summary/meeting) ---")
+
+    if not PROD_API_BASE_URL:
+        print("Error: PROD_API_BASE_URL is not set. Aborting test.")
+        return False
+    
+    prod_auth_key = os.getenv('PROD_SECRET_AUTH_KEY', SECRET_AUTH_KEY)
+    if not prod_auth_key:
+        print("Error: Auth key for PROD not set. Aborting test.")
+        return False
+    
+    # 議事録ファイルからコンテンツを読み込む
+    try:
+        with open('transcript_data.txt', 'r', encoding='utf-8') as f:
+            transcript_content = f.read()
+        print("Successfully loaded transcript_data.txt")
+    except FileNotFoundError:
+        print("Error: 'transcript_data.txt' not found. Please create it with the full transcript content.")
+        return False
+    except Exception as e:
+        print(f"Error reading 'transcript_data.txt': {e}")
+        return False
+    
+    payload = {
+        "transcript_content": transcript_content,
+        "save_to_firestore": True # 必要に応じて False に変更
+    }
+    
+    # JSON文字列に変換してPOSTリクエストを送信
+    response = _send_post_request(
+        PROD_API_BASE_URL, 
+        "/meeting-summary/meeting", 
+        json.dumps(payload), 
+        prod_auth_key
+    )
+
+    if response and response.status_code == 200:
+        print(f"Meeting Summary API (PROD) SUCCEEDED. Status: {response.status_code}")
+        try:
+            summary_json = response.json()
+            print(f"Response Summary: {json.dumps(summary_json, indent=2, ensure_ascii=False)}")
+            # 必要に応じて、response.json() の内容を検証するアサーションを追加
+            assert "summary" in summary_json
+            assert "overall_summary" in summary_json["summary"]
+            print("Summary content validated.")
+        except requests.exceptions.JSONDecodeError:
+            print(f"Response body (text): {response.text}")
+            print("Failed to decode JSON response.")
+        except AssertionError as ae:
+            print(f"Summary validation failed: {ae}")
+            return False
+        return True
+    else:
+        status = response.status_code if response else "N/A"
+        body = response.text if response and hasattr(response, 'text') else "No response object"
+        print(f"Meeting Summary API (PROD) FAILED. Status: {status}")
+        print(f"Response body: {body}")
+        return False

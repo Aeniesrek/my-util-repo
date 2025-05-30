@@ -2,3 +2,6 @@
 __pycache__/
 venv/
 moriguchiapplication-bca1bbbba077.json
+
+# Local test data
+transcript_data.txt

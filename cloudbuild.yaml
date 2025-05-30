@@ -27,12 +27,8 @@ steps:
       - "--image=asia-northeast2-docker.pkg.dev/$PROJECT_ID/my-util-repo/hello-world-api-service:$COMMIT_SHA"
       - "--region=asia-northeast2" # あなたのリージョン
       - "--platform=managed"
-      # ここで Secret Manager のシークレットを環境変数として設定
-      # secrets: [{secret: シークレット名, env: 環境変数名}]
-      # バージョンを指定しない場合は 'latest' が使われる
       - "--set-secrets=SECRET_AUTH_KEY=api-auth-key:latest"
-      # 以前設定した未認証許可フラグ (必要に応じて)
-      # '--allow-unauthenticated' # もし外部から直接呼び出す必要がある場合
+      - "--set-secrets=GOOGLE_GEN_AI_API_KEY=gemini-api-key:latest"
 
 # ビルドログのリージョン設定 (以前追加したもの)
 options:
