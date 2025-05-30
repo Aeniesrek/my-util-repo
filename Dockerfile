@@ -22,4 +22,4 @@ COPY run.py .
 EXPOSE ${PORT:-8080}
 
 # コンテナが起動したときに実行されるコマンドを指定します。
-CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "--workers", "1", "app:create_app()"]
+CMD gunicorn --bind "0.0.0.0:$PORT" --workers 1 --log-level debug "app:create_app()"
