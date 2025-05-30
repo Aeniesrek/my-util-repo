@@ -10,6 +10,7 @@ import google.generativeai as genai
 load_dotenv() 
 
 def create_app(config_name=None):
+    print("--- create_app() CALLED ---")
     app_instance = Flask(__name__)
 
     # --- 設定の読み込み ---
