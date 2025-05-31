@@ -45,8 +45,7 @@ def create_employee(employee_id):
         entity.update({
             "name": employee_data.get("name"),
             "email": employee_data.get("email"),
-            "role": employee_data.get("role"),
-            "delete_flag": employee_data.get("delete_flag", False)
+            "role": employee_data.get("role")
         })
 
         if not entity.get("name") or not entity.get("email"):

@@ -95,8 +95,8 @@
       ```
     - 従業員イベント作成 API のテスト:
       `bash
-    invoke test-employee-event-local
-    `
+invoke test-employee-event-local
+`
       これらのテストは、Datastore にテストデータ（従業員 ID: `test_emp_001`）を作成します。
 
 ## API エンドポイント (主要なもの)
@@ -125,8 +125,7 @@
     {
       "name": "Taro Yamada",
       "email": "taro.yamada@example.com",
-      "role": "Developer",
-      "delete_flag": false
+      "role": "Developer"
     }
     ```
   - 成功レスポンス (201): 作成された従業員データ。

@@ -87,7 +87,7 @@ def _ensure_test_employee_exists(c, employee_id, api_url, auth_key):
     employee_data = { # このペイロードは ensure のためのもの
         "name": f"Test Dummy (for events) {employee_id}",
         "email": f"{employee_id.replace('_', '.')}@example.com", # Ensure valid email
-        "role": "Event Test Prerequisite", "delete_flag": False
+        "role": "Event Test Prerequisite"
     }
     create_response = _send_post_request(api_url, f"/employees/{employee_id}", json.dumps(employee_data), auth_key)
     
@@ -192,8 +192,7 @@ def test_employee_creation_local(c): # 以前の test_data_auth_local から変�
     employee_payload_dict = {
         "name": f"Direct Create User {employee_id_to_create}",
         "email": f"{employee_id_to_create.replace('_', '.').lower()}@loc.example.com", # よりユニークなメール
-        "role": "Direct Create Test",
-        "delete_flag": False
+        "role": "Direct Create Test"
     }
     employee_payload_str = json.dumps(employee_payload_dict)
 
@@ -233,8 +232,7 @@ def test_employee_creation_prod(c): # 以前の test_data_auth_prod から変更
     employee_payload_dict = {
         "name": f"Direct Create User {employee_id_to_create} (Prod)",
         "email": f"{employee_id_to_create.replace('_', '.').lower()}@prod.example.com",
-        "role": "Direct Create Test (Prod)",
-        "delete_flag": False
+        "role": "Direct Create Test (Prod)"
     }
     employee_payload_str = json.dumps(employee_payload_dict)
 
