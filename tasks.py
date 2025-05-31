@@ -401,3 +401,69 @@ def test_summary_prod(c):
         print(f"Meeting Summary API (PROD) FAILED. Status: {status}")
         print(f"Response body: {body}")
         return False
+
+# tasks.py に追加する新しいタスク
+
+@task
+def test_google_meet_map_local(c):
+    """ローカル環境でGoogle Meetと社員emailのマッピング追加APIをテストします。"""
+    print(f"\n--- Testing Google Meet Mapping API (LOCAL: {API_BASE_URL}) ---")
+
+    if not SECRET_AUTH_KEY:
+        print("Error: SECRET_AUTH_KEY が設定されていません。テストを中止します。")
+        return False
+
+    # --- テストデータ定義 ---
+    # テスト用のメールアドレス (URLパスに使用するため、必要であればURLエンコードを考慮)
+    # シンプルなメールアドレスであれば通常そのままで問題ありません。
+    # Flask側で <path:email> を使用しているため、ある程度の柔軟性があります。
+    test_email_for_path = "local.test.user@example.com"
+    test_google_meet_name = "Local Test User Meet Name"
+
+    endpoint = f"/google_meet_employee_map/{test_email_for_path}"
+    
+    payload_dict = {
+        "google_meet_name": test_google_meet_name
+        # emailはURLパスから取得するため、ペイロードには含めない設計としています。
+        # もしFlask側の実装でペイロードにもemailを要求する場合は、ここに追加してください。
+        # "email": test_email_for_path 
+    }
+    payload_str = json.dumps(payload_dict)
+
+    print(f"Attempting to POST Google Meet mapping for email: {test_email_for_path} with payload: {payload_str}")
+    
+    # _send_post_request ヘルパーを使用してリクエストを送信
+    response = _send_post_request(
+        API_BASE_URL, 
+        endpoint, 
+        payload_str, 
+        SECRET_AUTH_KEY
+    )
+
+    # --- レスポンス検証 ---
+    # Flask側の実装で、新規作成時は201 Created、更新時は200 OKを返す想定。
+    # ここでは両方もしくは片方を成功として扱います。
+    if response and (response.status_code == 200 or response.status_code == 201):
+        print(f"Google Meet mapping API (LOCAL) SUCCEEDED. Status: {response.status_code}")
+        try:
+            response_json = response.json()
+            print(f"Response body: {json.dumps(response_json, indent=2, ensure_ascii=False)}")
+            # 必要に応じてアサーションを追加 (例: response_json.get("email") == test_email_for_path)
+        except requests.exceptions.JSONDecodeError: # requests をインポートしている前提
+            print(f"Response body (text): {response.text}")
+            print("レスポンスのJSONデコードに失敗しました。")
+        return True
+    elif response and response.status_code == 409: # 既に存在する場合 (Conflict)
+        print(f"Google Meet mapping API (LOCAL) - Conflict. Mapping might already exist. Status: {response.status_code}")
+        try:
+            response_json = response.json() # エラーレスポンスもJSON形式である可能性があるため
+            print(f"Response body: {json.dumps(response_json, indent=2, ensure_ascii=False)}")
+        except requests.exceptions.JSONDecodeError:
+            print(f"Response body (text): {response.text}")
+        return True # テストの目的によっては、存在確認が取れたとして成功扱いにする場合も
+    else:
+        status = response.status_code if response else "N/A"
+        body = response.text if response and hasattr(response, 'text') else "No response object"
+        print(f"Google Meet mapping API (LOCAL) FAILED. Status: {status}")
+        print(f"Response body: {body}")
+        return False

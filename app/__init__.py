@@ -83,6 +83,10 @@ def create_app(config_name=None):
 
     from .meeting_summary import bp as meeting_summary_bp
     app_instance.register_blueprint(meeting_summary_bp, url_prefix='/meeting-summary')
+    
+    from .google_meet_maps.routes import google_meet_map_bp
+
+    app_instance.register_blueprint(google_meet_map_bp)
 
 
     return app_instance
