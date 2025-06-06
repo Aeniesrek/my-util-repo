@@ -29,6 +29,8 @@ steps:
       - "--platform=managed"
       - "--set-secrets=SECRET_AUTH_KEY=api-auth-key:latest"
       - "--set-secrets=GOOGLE_GEN_AI_API_KEY=gemini-api-key:latest"
+      - "--set-secrets=SLACK_TOKEN=slack-bot-token:latest"
+      - "--set-secrets=SLACK_CHANNEL=slack-target-channel:latest"
 
 # ビルドログのリージョン設定 (以前追加したもの)
 options:
