@@ -1,5 +1,12 @@
 # app/meeting_summary/routes.py
 
+import os
+import requests
+import json
+from datetime import datetime, timezone
+from typing import List, Dict
+from dataclasses import asdict
+
 from flask import Blueprint, request, jsonify, current_app
 from app.auth import authenticate_request 
 import google.generativeai as genai
@@ -14,6 +21,71 @@ from app.meeting_summary.models import MeetingSummary, Decision, ActionItem
 
 # Blueprintの定義
 bp = Blueprint('meeting_summary', __name__) 
+
+def _format_summary_for_slack(summary: MeetingSummary) -> str:
+    """MeetingSummaryオブジェクトをSlack投稿用に整形する"""
+
+    # ActionItemをリスト形式のテキストに変換
+    action_items_text = "\n".join(
+        [f"- {item.action} (担当: {item.assignee}, 期限: {item.due_date})" for item in summary.action_items]
+    ) if summary.action_items else "なし"
+
+    # Decisionをリスト形式のテキストに変換
+    decisions_text = "\n".join(
+        [f"- {decision.item}" for decision in summary.decisions]
+    ) if summary.decisions else "なし"
+
+    # Slackメッセージのテキスト全体を組み立てる
+    text = f"""
+:notebook: *1on1ミーティング 議事録サマリー*
+
+*参加者*: {summary.employee_name if summary.employee_name else '未指定'}
+*会議日*: {summary.meeting_date if summary.meeting_date else '未指定'}
+*目的*: {summary.purpose if summary.purpose else '未指定'}
+---
+*決定事項*
+{decisions_text}
+---
+*アクションアイテム*
+{action_items_text}
+---
+*全体サマリー*
+{summary.overall_summary}
+    """
+    return text.strip()
+
+
+def _post_summary_to_slack(summary: MeetingSummary):
+    """整形された議事録サマリーをSlackに投稿する"""
+    slack_token = os.getenv('SLACK_TOKEN')
+    slack_channel = os.getenv('SLACK_CHANNEL')
+
+    if not slack_token or not slack_channel:
+        current_app.logger.warning("SLACK_TOKEN or SLACK_CHANNEL is not set. Skipping Slack post.")
+        return
+
+    message_text = _format_summary_for_slack(summary)
+    
+    headers = {
+        "Authorization": f"Bearer {slack_token}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    payload = {
+        "channel": slack_channel,
+        "text": message_text,
+        "unfurl_links": False, # リンクのプレビューを無効化
+    }
+    
+    try:
+        response = requests.post("https://slack.com/api/chat.postMessage", headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
+        response_data = response.json()
+        if response_data.get("ok"):
+            current_app.logger.info(f"Successfully posted summary to Slack channel {slack_channel}")
+        else:
+            current_app.logger.error(f"Slack API error: {response_data.get('error')}")
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"Failed to post message to Slack: {e}")
 
 # --- Function Calling用のツール関数の定義 ---
 def create_meeting_summary_tool_function(
@@ -66,6 +138,9 @@ def summarize_meeting():
 
     transcript_content = data['transcript_content']
     save_to_firestore = data.get('save_to_firestore', False) 
+
+    #post_to_slack = data.get('post_to_slack', False)
+    post_to_slack = True # ★変更: Slackへの投稿を常に有効化
 
     try:
         model = genai.GenerativeModel(
@@ -146,6 +221,10 @@ def summarize_meeting():
                         overall_summary=function_call_args_plain.get('overall_summary', ''),
                         action_items=action_items,
                     )
+                    print("Posting summary to Slack...",post_to_slack)
+                    if post_to_slack:
+                        
+                        _post_summary_to_slack(summary_data)
 
                     if save_to_firestore:
                         db_client = current_app.db 
