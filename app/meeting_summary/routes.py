@@ -90,7 +90,7 @@ def _post_summary_to_slack(summary: MeetingSummary):
 # --- Function Calling用のツール関数の定義 ---
 def create_meeting_summary_tool_function(
     meeting_date: str,
-    employee_name: str,
+    employee_name: List[str],  # ★変更: 会議の報告者（部下）の名前をリストで受け取る
     purpose: str,
     decisions: List[Dict], 
     overall_summary: str,

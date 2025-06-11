@@ -21,7 +21,7 @@ class ActionItem:
 class MeetingSummary:
     """会議の要約全体を表すクラス。普遍的な1on1ミーティングの結果をシンプルに表現。"""
     meeting_date: str # 会議日時 (例: "2025-05-22 17:28 JST" or "2025-05-22T17:28:00+09:00")
-    employee_name: str # ★変更: 会議の報告者（部下）の名前
+    employee_name: List[str] # ★変更: 会議の報告者（部下）の名前
     purpose: str # 会議の目的
     decisions: List[Decision] # 主要な決定事項のリスト
     action_items: List[ActionItem] # アクションアイテムのリスト
