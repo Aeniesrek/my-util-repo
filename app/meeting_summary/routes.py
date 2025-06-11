@@ -213,8 +213,10 @@ def summarize_meeting():
                         filtered_a = {k: v for k, v in a_item.items() if k in ActionItem.__annotations__}
                         action_items.append(ActionItem(**filtered_a))
 
+                    # 現在の年月日を取得し、文字列に変換
+                    
                     summary_data = MeetingSummary(
-                        meeting_date=function_call_args_plain.get('meeting_date', ''),
+                        meeting_date=datetime.now(timezone.utc).strftime('%Y-%m-%d %Z')  , #　本日日付を文字列に変換
                         employee_name=function_call_args_plain.get('employee_name', ''), # ★変更
                         purpose=function_call_args_plain.get('purpose', ''),
                         decisions=decisions,
